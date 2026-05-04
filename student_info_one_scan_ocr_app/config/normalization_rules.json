@@ -1,0 +1,7 @@
+{
+  "phone_ocr_fixes": { "O": "0", "o": "0", "I": "1", "l": "1", "|": "1", "S": "5", "s": "5" },
+  "yes_tokens": ["예", "네", "있음", "유", "O", "○", "체크", "Y", "y"],
+  "no_tokens": ["아니오", "아니요", "없음", "무", "X", "x", "N", "n"],
+  "strip_special_spaces": true,
+  "collapse_whitespace": true
+}

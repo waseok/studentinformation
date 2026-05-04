@@ -1,0 +1,15 @@
+{
+  "tesseract_path": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
+  "default_output_dir": "",
+  "ocr_lang": "kor+eng",
+  "dpi": 300,
+  "save_raw_ocr": true,
+  "delete_temp_files": false,
+  "use_qr_form_id": true,
+  "default_school_name": "",
+  "default_retention_period": "학년도 종료 후 1년",
+  "pages_per_student": 1,
+  "default_sort_mode": "pdf_order",
+  "minimize_pii_export": false,
+  "health_sheet_exclude_address": true
+}

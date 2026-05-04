@@ -1,0 +1,10 @@
+PyQt5>=5.15.10
+pytesseract>=0.3.10
+Pillow>=10.2.0
+PyMuPDF>=1.24.0
+opencv-python-headless>=4.9.0.80
+pandas>=2.2.0
+openpyxl>=3.1.2
+reportlab>=4.2.0
+qrcode[pil]>=7.4.2
+pytest>=8.0.0

@@ -1,0 +1,9 @@
+{
+  "default": { "psm": 6, "oem": 3 },
+  "korean_name": { "psm": 7, "oem": 3 },
+  "phone": { "psm": 7, "oem": 3, "whitelist": "0123456789- " },
+  "date": { "psm": 7, "oem": 3, "whitelist": "0123456789.-/ " },
+  "number": { "psm": 7, "oem": 3, "whitelist": "0123456789" },
+  "multiline": { "psm": 6, "oem": 3 },
+  "medical": { "psm": 6, "oem": 3 }
+}
