@@ -75,6 +75,27 @@ def build_normalized_rows(records: list[StudentRecord], form_version: str) -> pd
                 "보호자요청사항": _field(rec, "F044"),
                 "개인정보동의": _field(rec, "F050", "F051"),
                 "민감정보동의": _field(rec, "F053", "F054"),
+                # 학교생활기록부 기초자료 양식 전용 필드 (없으면 빈 문자열)
+                "학생전화번호": _field(rec, "F060"),
+                "통학방법": " ".join(
+                    filter(
+                        None,
+                        [
+                            _field(rec, "F061a"),
+                            _field(rec, "F061b"),
+                            _field(rec, "F061c"),
+                            _field(rec, "F061d"),
+                            _field(rec, "F061e"),
+                        ],
+                    )
+                ).strip() or _field(rec, "F009a", "F009b", "F009c", "F009d", "F009e"),
+                "맞벌이여부": _field(rec, "F062a") or ("아니오" if _field(rec, "F062b") else ""),
+                "방과후_보호자유무": _field(rec, "F063"),
+                "방과후_주활동": _field(rec, "F064"),
+                "선생님알림": _field(rec, "F065"),
+                "학습지도메모": _field(rec, "F066"),
+                "건강상태메모": _field(rec, "F067"),
+                "기타중요사항": _field(rec, "F068"),
                 "risk_level": rec.risk_level.value,
                 "detected_keywords": ",".join(rec.detected_keywords),
                 "health_teacher_review_needed": rec.health_teacher_review_needed,
@@ -104,7 +125,7 @@ def export_master_workbook(
             if col in norm.columns:
                 norm[col] = ""
     if mask_phone:
-        for col in ("보호자1연락처", "보호자2연락처"):
+        for col in ("보호자1연락처", "보호자2연락처", "학생전화번호"):
             if col in norm.columns:
                 norm[col] = norm[col].apply(mask_phone_export)
     if mask_address:
