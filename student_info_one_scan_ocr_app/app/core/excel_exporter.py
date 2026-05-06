@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 
 from app.core.data_models import StudentRecord
+from app.utils.privacy_utils import mask_address_export, mask_name_export, mask_phone_export
 
 
 def _field(rec: StudentRecord, *candidates: str) -> str:
@@ -92,6 +93,9 @@ def export_master_workbook(
     settings_snapshot: dict[str, Any],
     minimize_pii: bool = False,
     health_exclude_address: bool = True,
+    mask_phone: bool = False,
+    mask_address: bool = False,
+    mask_names: bool = False,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     norm = build_normalized_rows(records, form_version)
@@ -99,6 +103,17 @@ def export_master_workbook(
         for col in ("주소", "보호자1연락처", "보호자2연락처"):
             if col in norm.columns:
                 norm[col] = ""
+    if mask_phone:
+        for col in ("보호자1연락처", "보호자2연락처"):
+            if col in norm.columns:
+                norm[col] = norm[col].apply(mask_phone_export)
+    if mask_address:
+        if "주소" in norm.columns:
+            norm["주소"] = norm["주소"].apply(mask_address_export)
+    if mask_names:
+        for col in ("성명", "보호자1성명", "보호자2성명"):
+            if col in norm.columns:
+                norm[col] = norm[col].apply(mask_name_export)
 
     health = norm[norm["risk_level"].isin(["high", "medium"])].copy()
     if health_exclude_address and "주소" in health.columns:

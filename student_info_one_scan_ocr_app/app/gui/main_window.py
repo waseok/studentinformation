@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
 from PyQt5.QtWidgets import (
+    QCheckBox,
+    QDialog,
+    QDialogButtonBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -39,6 +43,55 @@ from app.utils.path_utils import ensure_runtime_dirs
 from app.workers.ocr_worker import OCRWorker
 
 log = logging.getLogger(__name__)
+
+
+class _MaskingOptionsDialog(QDialog):
+    """엑셀 저장 전 개인정보 마스킹 옵션을 선택하는 다이얼로그."""
+
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("개인정보 마스킹 옵션")
+        self.setMinimumWidth(360)
+
+        layout = QVBoxLayout()
+        layout.addWidget(
+            QLabel(
+                "엑셀 파일에 저장할 개인정보 보호 옵션을 선택하세요.\n"
+                "마스킹은 저장 파일에만 적용되며 앱 내 데이터는 변경되지 않습니다."
+            )
+        )
+
+        self._chk_phone = QCheckBox("전화번호 마스킹  (예: 010-****-5678)")
+        self._chk_phone.setChecked(False)
+        self._chk_addr = QCheckBox("주소 마스킹  (앞 10자만 표시, 나머지 ***)")
+        self._chk_addr.setChecked(False)
+        self._chk_name = QCheckBox("성명 마스킹  ([NAME]으로 대체)")
+        self._chk_name.setChecked(False)
+
+        layout.addWidget(self._chk_phone)
+        layout.addWidget(self._chk_addr)
+        layout.addWidget(self._chk_name)
+
+        btns = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btns.button(QDialogButtonBox.Ok).setText("저장")
+        btns.button(QDialogButtonBox.Cancel).setText("취소")
+        btns.accepted.connect(self.accept)
+        btns.rejected.connect(self.reject)
+        layout.addWidget(btns)
+
+        self.setLayout(layout)
+
+    @property
+    def mask_phone(self) -> bool:
+        return self._chk_phone.isChecked()
+
+    @property
+    def mask_address(self) -> bool:
+        return self._chk_addr.isChecked()
+
+    @property
+    def mask_names(self) -> bool:
+        return self._chk_name.isChecked()
 
 
 class MainWindow(QMainWindow):
@@ -356,13 +409,8 @@ class MainWindow(QMainWindow):
         if not self._records:
             QMessageBox.information(self, "안내", "저장할 결과가 없습니다.")
             return
-        ret = QMessageBox.warning(
-            self,
-            "개인정보",
-            "개인정보 및 민감정보가 포함된 파일입니다. 저장 위치를 확인하세요.",
-            QMessageBox.Ok | QMessageBox.Cancel,
-        )
-        if ret != QMessageBox.Ok:
+        mask_dlg = _MaskingOptionsDialog(self)
+        if mask_dlg.exec_() != QDialog.Accepted:
             return
         settings = load_app_settings()
         grade = "0"
@@ -377,8 +425,8 @@ class MainWindow(QMainWindow):
             if b and b.normalized_value:
                 ban = b.normalized_value
                 break
-        year = settings.get("default_school_name", "") or "출력"
-        fname = f"2026_{grade}학년{ban}반_학생기초자료_OCR취합_master.xlsx"
+        year = datetime.now().year
+        fname = f"{year}_{grade}학년{ban}반_학생기초자료_OCR취합_master.xlsx"
         out = self._output_dir / fname
         roster_rows = None
         if self._roster_df is not None:
@@ -408,6 +456,9 @@ class MainWindow(QMainWindow):
                 settings_snapshot=settings,
                 minimize_pii=bool(settings.get("minimize_pii_export")),
                 health_exclude_address=bool(settings.get("health_sheet_exclude_address", True)),
+                mask_phone=mask_dlg.mask_phone,
+                mask_address=mask_dlg.mask_address,
+                mask_names=mask_dlg.mask_names,
             )
             QMessageBox.information(self, "완료", str(out))
         except PermissionError:

@@ -27,7 +27,7 @@ def normalize_phone(raw: str, fixes: dict[str, str] | None = None) -> str:
     digits = re.sub(r"\D", "", s)
     if len(digits) == 11 and digits.startswith("010"):
         return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
-    if len(digits) == 10 and digits.startswith("10"):
+    if len(digits) == 10 and not digits.startswith("0"):
         digits = "0" + digits
         return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
     return collapse_whitespace(raw)

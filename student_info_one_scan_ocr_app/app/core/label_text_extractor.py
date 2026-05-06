@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
 
 from PIL import Image
 
 from app.core.ocr_engine import ocr_image, ocr_image_data
+
+log = logging.getLogger(__name__)
 
 def extract_after_label(full_text: str, labels: list[str]) -> str | None:
     """첫 매칭 라벨 뒤의 한 줄 또는 공백까지 토큰."""
@@ -87,7 +90,8 @@ def extract_with_anchor_regions(
                 ly = int(tops[i])
                 lw = int(widths[i])
                 lh = int(heights[i])
-            except Exception:
+            except Exception as e:
+                log.debug("bbox 파싱 오류, 건너뜀 (index=%d): %s", i, e)
                 continue
 
             # 1차: 라벨 오른쪽 영역
