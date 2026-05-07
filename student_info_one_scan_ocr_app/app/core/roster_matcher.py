@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import difflib
+import logging
 from typing import Any
 
 import pandas as pd
 
 from app.core.data_models import StudentRecord
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -36,12 +39,30 @@ def load_roster_df(path: str) -> pd.DataFrame:
         raise ValueError("명단에 학년, 반, 번호, 성명 열이 필요합니다.")
     out = pd.DataFrame(
         {
-            "roster_grade": df[g].astype(str),
-            "roster_class": df[cl].astype(str),
-            "roster_number": df[num].astype(str),
-            "roster_name": df[nm].astype(str),
+            "roster_grade": df[g].astype(str).str.strip(),
+            "roster_class": df[cl].astype(str).str.strip(),
+            "roster_number": df[num].astype(str).str.strip(),
+            "roster_name": df[nm].astype(str).str.strip(),
         }
     )
+
+    # NaN/빈 값 검사
+    nan_mask = out["roster_number"].isin(["", "nan", "NaN", "None"])
+    if nan_mask.any():
+        raise ValueError(
+            f"명단 '번호' 열에 빈 값이 {nan_mask.sum()}개 있습니다. 확인 후 다시 불러오세요."
+        )
+    empty_name = out["roster_name"].isin(["", "nan", "NaN", "None"])
+    if empty_name.any():
+        raise ValueError(
+            f"명단 '성명' 열에 빈 값이 {empty_name.sum()}개 있습니다. 확인 후 다시 불러오세요."
+        )
+
+    # 중복 번호 경고
+    dup_nums = out[out["roster_number"].duplicated(keep=False)]["roster_number"].unique().tolist()
+    if dup_nums:
+        log.warning("명단에 중복 학생 번호가 있습니다: %s", dup_nums)
+
     return out
 
 

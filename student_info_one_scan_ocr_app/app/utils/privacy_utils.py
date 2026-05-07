@@ -49,3 +49,35 @@ def truncate(text: str, max_len: int = 20) -> str:
     if len(text) <= max_len:
         return text
     return text[: max_len - 3] + "..."
+
+
+# ── 엑셀 내보내기 전용 마스킹 ────────────────────────────────────────────────
+
+_PHONE_EXPORT_RE = re.compile(r"(\d{2,3})-(\d{3,4})-(\d{4})")
+
+
+def mask_phone_export(text: str) -> str:
+    """전화번호 중간 자리를 ****로 대체. 예: 010-1234-5678 → 010-****-5678"""
+    if not text:
+        return text
+    result = _PHONE_EXPORT_RE.sub(lambda m: f"{m.group(1)}-****-{m.group(3)}", text)
+    if result == text:
+        # 하이픈 없는 연속 숫자 처리
+        digits = re.sub(r"\D", "", text)
+        if len(digits) in (10, 11):
+            return digits[:3] + "-****-" + digits[-4:]
+    return result
+
+
+def mask_address_export(text: str, keep: int = 10) -> str:
+    """주소 앞 keep자만 표시하고 나머지는 ***로 대체."""
+    if not text or len(text) <= keep:
+        return text
+    return text[:keep] + "***"
+
+
+def mask_name_export(text: str) -> str:
+    """성명을 [NAME]으로 대체."""
+    if not text:
+        return text
+    return "[NAME]"

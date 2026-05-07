@@ -27,22 +27,22 @@ def preprocess(
 ) -> Image.Image:
     bgr = pil_to_cv(img)
     if grayscale:
-        gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+        arr: np.ndarray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     else:
-        gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+        arr = bgr
 
-    if deskew:
-        gray = _deskew_gray(gray)
-
-    if denoise:
-        gray = cv2.fastNlMeansDenoising(gray, h=10, templateWindowSize=7, searchWindowSize=21)
-
-    if adaptive_thresh:
-        gray = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 35, 10
-        )
-
-    return Image.fromarray(gray)
+    if arr.ndim == 2:
+        if deskew:
+            arr = _deskew_gray(arr)
+        if denoise:
+            arr = cv2.fastNlMeansDenoising(arr, h=10, templateWindowSize=7, searchWindowSize=21)
+        if adaptive_thresh:
+            arr = cv2.adaptiveThreshold(
+                arr, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 35, 10
+            )
+        return Image.fromarray(arr)
+    else:
+        return cv_to_pil(arr)
 
 
 def _deskew_gray(gray: np.ndarray) -> np.ndarray:

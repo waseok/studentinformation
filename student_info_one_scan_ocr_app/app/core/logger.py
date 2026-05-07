@@ -18,7 +18,8 @@ class PrivacyFilter(logging.Filter):
             record.msg = sanitize_log_message(raw)
             record.args = ()
         except Exception:
-            pass
+            # 재귀 로깅 방지: 실패 시 원본 메시지 그대로 유지
+            record.args = ()
         return True
 
 

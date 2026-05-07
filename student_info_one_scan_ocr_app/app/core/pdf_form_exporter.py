@@ -22,6 +22,10 @@ from reportlab.pdfgen import canvas
 
 from app.core.form_schema import FieldDefinition, field_to_template_dict
 
+import logging
+
+log = logging.getLogger(__name__)
+
 PAGE_W, PAGE_H = A4
 
 
@@ -43,12 +47,14 @@ def _try_register_korean_font() -> str:
             try:
                 pdfmetrics.registerFont(TTFont(name, str(p)))
                 return name
-            except Exception:
+            except Exception as e:
+                log.debug("폰트 등록 실패 (%s): %s", name, e)
                 continue
     try:
         pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
         return "HYSMyeongJo-Medium"
-    except Exception:
+    except Exception as e:
+        log.debug("CID 한글 폰트 등록 실패, Helvetica로 대체: %s", e)
         return "Helvetica"
 
 
@@ -82,18 +88,6 @@ def _draw_field_box(c: canvas.Canvas, font: str, item: dict[str, Any]) -> None:
 
     c.setFillColor(colors.black)
     c.setStrokeColor(colors.black)
-    c.setLineWidth(1.0)
-    c.rect(x, y_ll, w, h, stroke=1, fill=0)
-    return
-
-    c.setFont(font, 8)
-    c.setFillColor(colors.black)
-    c.drawString(x, y_ll + h + 2.8, label)
-    c.setFont("Helvetica", 5)
-    c.setFillColor(colors.grey)
-    c.drawRightString(x + w, y_ll + h + 2.8, field_id)
-    c.setFillColor(colors.black)
-
     c.setLineWidth(1.0)
     c.rect(x, y_ll, w, h, stroke=1, fill=0)
 
